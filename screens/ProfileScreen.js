@@ -1,12 +1,31 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function ProfileScreen() {
-  const [name, setName] = useState('John Doe');
-  const [email, setEmail] = useState('john@example.com');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
-  const saveProfile = () => {
-    alert('Profile updated');
+  useEffect(() => {
+    // Charger les données sauvegardées
+    const loadProfile = async () => {
+      const savedName = await AsyncStorage.getItem('userName');
+      const savedEmail = await AsyncStorage.getItem('userEmail');
+      if (savedName) setName(savedName);
+      if (savedEmail) setEmail(savedEmail);
+    };
+    loadProfile();
+  }, []);
+
+  const saveProfile = async () => {
+    setLoading(true);
+    await AsyncStorage.setItem('userName', name);
+    await AsyncStorage.setItem('userEmail', email);
+    setLoading(false);
+    setMessage('Profil mis à jour avec succès !');
+    setTimeout(() => setMessage(''), 3000);
   };
 
   return (
@@ -24,11 +43,13 @@ export default function ProfileScreen() {
         value={email}
         onChangeText={setEmail}
         placeholder="Email"
+        keyboardType="email-address"
         placeholderTextColor="#aaa"
       />
-      <TouchableOpacity style={styles.button} onPress={saveProfile}>
-        <Text style={styles.buttonText}>Sauvegarder</Text>
+      <TouchableOpacity style={styles.button} onPress={saveProfile} disabled={loading}>
+        {loading ? <ActivityIndicator color="white" /> : <Text style={styles.buttonText}>Sauvegarder</Text>}
       </TouchableOpacity>
+      {message ? <Text style={styles.successMessage}>{message}</Text> : null}
     </View>
   );
 }
@@ -45,7 +66,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: 'bold',
     marginBottom: 40,
-    color: '#333',
+    color: '#07501c',
   },
   input: {
     height: 50,
@@ -56,6 +77,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingLeft: 10,
     fontSize: 18,
+    backgroundColor: '#fff',
   },
   button: {
     width: '80%',
@@ -67,6 +89,12 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
+    fontWeight: 'bold',
+  },
+  successMessage: {
+    marginTop: 15,
+    color: 'green',
+    fontSize: 16,
     fontWeight: 'bold',
   },
 });

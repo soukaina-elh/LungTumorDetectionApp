@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Button, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function DetectionScreen() {
@@ -11,42 +11,56 @@ export default function DetectionScreen() {
     const requestPermission = async () => {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        alert('Permission required for image access');
+        Alert.alert('Permission requise', 'Veuillez autoriser l’accès aux images.');
       }
     };
     requestPermission();
   }, []);
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      quality: 1,
-    });
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
 
-    if (!result.canceled) {
-      setImage(result.uri);
+      if (!result.canceled) {
+        setImage(result.assets[0].uri); // ✅ Correction ici
+      }
+    } catch (error) {
+      Alert.alert('Erreur', 'Une erreur est survenue lors du choix de l’image.');
     }
   };
 
   const analyzeImage = async () => {
+    if (!image) {
+      Alert.alert('Aucune image', 'Veuillez sélectionner une image avant de l’analyser.');
+      return;
+    }
+
     setLoading(true);
-    const response = await fetch('https://your-backend.com/analyze', {
-      method: 'POST',
-      body: JSON.stringify({ image: image }),
-      headers: { 'Content-Type': 'application/json' },
-    });
-    const data = await response.json();
-    setResult(data.result);
+    try {
+      const response = await fetch('https://your-backend.com/analyze', {
+        method: 'POST',
+        body: JSON.stringify({ image: image }),
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await response.json();
+      setResult(data.result);
+    } catch (error) {
+      Alert.alert('Erreur', 'Une erreur est survenue lors de l’analyse de l’image.');
+    }
     setLoading(false);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Téléchargez une image pour analyse</Text>
-      <Button title="Choisir une image" onPress={pickImage} color="#07501c" style={styles.button} />
+      <Button title="Choisir une image" onPress={pickImage} color="#07501c" />
       {image && <Image source={{ uri: image }} style={styles.image} />}
-      <Button title="Analyser l'image" onPress={analyzeImage} color="#07501c" style={styles.button} />
+      <Button title="Analyser l'image" onPress={analyzeImage} color="#07501c" />
       {loading && <ActivityIndicator size="large" color="#0000ff" />}
       {result && <Text style={styles.result}>Résultat: {result}</Text>}
     </View>
@@ -66,13 +80,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 30,
-  },
-  button: {
-    marginTop: 20,
-    width: '80%',
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: '#07501c',
+    textAlign: 'center',
   },
   image: {
     width: 250,
@@ -89,3 +97,4 @@ const styles = StyleSheet.create({
     color: '#07501c',
   },
 });
+

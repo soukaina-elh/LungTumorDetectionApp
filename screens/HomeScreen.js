@@ -1,26 +1,30 @@
 import React from 'react';
-import { View, Text, Button, StyleSheet, ImageBackground } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from 'react-native';
 
 export default function HomeScreen({ navigation }) {
   return (
     <ImageBackground
-      source={{ uri: 'https://example.com/background.jpg' }} // Image de fond élégante
+      source={{ uri: 'https://example.com/background.jpg' }} // Mets ton image ici
       style={styles.container}
     >
       <View style={styles.overlay}>
         <Text style={styles.title}>Détection de Tumeurs Pulmonaires</Text>
-        <Button
-          title="Commencer la détection"
-          onPress={() => navigation.navigate('Detection')}
-          color="#07501c"
-          style={styles.button}
-        />
-        <Button
-          title="Consulter les résultats précédents"
-          onPress={() => navigation.navigate('Results')}
-          color="#07501c"
-          style={styles.button}
-        />
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Detection')}>
+          <Text style={styles.buttonText}>Commencer la détection</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Results')}>
+          <Text style={styles.buttonText}>Consulter les résultats</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Profile')}>
+          <Text style={styles.buttonText}>Profil</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Settings')}>
+          <Text style={styles.buttonText}>Paramètres</Text>
+        </TouchableOpacity>
       </View>
     </ImageBackground>
   );
@@ -31,27 +35,33 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
   overlay: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Ombre pour une meilleure lisibilité
-    borderRadius: 20,
-    padding: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', // Ombre foncée pour le contraste
+    borderRadius: 15,
+    padding: 25,
+    width: '85%',
     alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 30,
+    marginBottom: 20,
     textAlign: 'center',
   },
   button: {
-    marginTop: 20,
-    width: '80%',
-    padding: 10,
+    backgroundColor: '#0A5C1D',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
     borderRadius: 10,
-    backgroundColor: '#07501c',
+    marginVertical: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
