@@ -1,23 +1,61 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useContext } from 'react';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
+import { SettingsContext } from '../contexts/SettingsContext';
+import { useIsFocused } from '@react-navigation/native';
+
+// 📌 Traductions
+const translations = {
+  en: { title: "Results History", noResults: "No results available", back: "Back to Home" },
+  fr: { title: "Historique des résultats", noResults: "Aucun résultat disponible", back: "Retour à l'accueil" },
+  ar: { title: "تاريخ النتائج", noResults: "لا توجد نتائج متاحة", back: "العودة إلى الرئيسية" },
+  es: { title: "Historial de resultados", noResults: "No hay resultados disponibles", back: "Volver al inicio" },
+  zh: { title: "结果历史", noResults: "暂无结果", back: "返回首页" },
+  de: { title: "Ergebnisverlauf", noResults: "Keine Ergebnisse verfügbar", back: "Zurück zur Startseite" }
+};
 
 export default function ResultsScreen({ navigation }) {
-  const results = [
-    { id: '1', date: '2025-01-01', result: 'Tumor detected' },
-    { id: '2', date: '2025-01-02', result: 'No tumor detected' },
-  ];
+  const { isDarkMode, language } = useContext(SettingsContext);
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const isFocused = useIsFocused();
+
+  useEffect(() => {
+    if (isFocused) {
+      loadResults();
+    }
+  }, [isFocused]);
+
+  const loadResults = async () => {
+    setLoading(true);
+    try {
+      const savedResults = await AsyncStorage.getItem('scanResults');
+      if (savedResults) {
+        setResults(JSON.parse(savedResults));
+      }
+    } catch (error) {
+      console.error("Erreur de chargement des résultats :", error);
+    }
+    setLoading(false);
+  };
 
   const getResultColor = (result) => {
     return result === 'Tumor detected' ? '#d9534f' : '#5cb85c'; // Rouge pour positif, vert pour négatif
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Historique des résultats</Text>
-      
-      {results.length === 0 ? (
-        <Text style={styles.emptyText}>Aucun résultat disponible</Text>
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
+      <Text style={[styles.title, isDarkMode && styles.darkText]}>
+        {translations[language]?.title || translations.en.title}
+      </Text>
+
+      {loading ? (
+        <ActivityIndicator size="large" color={isDarkMode ? "#bbb" : "#07501c"} />
+      ) : results.length === 0 ? (
+        <Text style={[styles.emptyText, isDarkMode && styles.darkText]}>
+          {translations[language]?.noResults || translations.en.noResults}
+        </Text>
       ) : (
         <FlatList
           data={results}
@@ -29,29 +67,34 @@ export default function ResultsScreen({ navigation }) {
                   size={24}
                   color={getResultColor(item.result)}
                 />
-                <Text style={styles.date}>{item.date}</Text>
+                <Text style={[styles.date, isDarkMode && styles.darkText]}>{item.date}</Text>
               </View>
               <Text style={[styles.result, { color: getResultColor(item.result) }]}>
                 {item.result}
               </Text>
             </View>
           )}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
         />
       )}
 
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Home')}>
-        <Text style={styles.buttonText}>Retour à l'accueil</Text>
+        <Ionicons name="arrow-back-outline" size={20} color="white" />
+        <Text style={styles.buttonText}>{translations[language]?.back || translations.en.back}</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
+// 🎨 **Styles améliorés**
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
     backgroundColor: '#f8f8f8',
+  },
+  darkContainer: {
+    backgroundColor: '#1e1e1e',
   },
   title: {
     fontSize: 26,
@@ -59,6 +102,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     color: '#07501c',
     textAlign: 'center',
+  },
+  darkText: {
+    color: '#ddd',
   },
   emptyText: {
     fontSize: 18,
@@ -95,16 +141,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   button: {
+    flexDirection: 'row',
     marginTop: 20,
     backgroundColor: '#07501c',
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    marginLeft: 10,
   },
 });
-

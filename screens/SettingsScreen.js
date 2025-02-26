@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Switch, StyleSheet, Appearance } from 'react-native';
+import React, { useContext } from 'react';
+import { View, Text, Switch, StyleSheet } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
-import * as Localization from 'expo-localization';  // Changement ici
+import { SettingsContext } from '../contexts/SettingsContext';
 
 // 📌 Traductions
 const translations = {
@@ -14,18 +14,10 @@ const translations = {
 };
 
 export default function SettingsScreen() {
-  const systemTheme = Appearance.getColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState(systemTheme === 'dark');
-  const [language, setLanguage] = useState('fr');
-
-  useEffect(() => {
-    const deviceLanguage = Localization.locale.split('-')[0]; // Récupère la langue du système
-    setLanguage(deviceLanguage);
-  }, []);
+  const { isDarkMode, setIsDarkMode, language, setLanguage } = useContext(SettingsContext);
 
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-      {/* 🏷️ Titre */}
       <Text style={[styles.title, isDarkMode && styles.darkText]}>
         {translations[language]?.title || translations.en.title}
       </Text>
